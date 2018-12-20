@@ -1,0 +1,6 @@
+FROM scratch
+ARG APP_NAME
+ARG BASE_TAG
+COPY ./${APP_NAME}-${BASE_TAG} /usr/local/bin/
+ENTRYPOINT ["/usr/local/bin/${APP_NAME}-${BASE_TAG}"]
+EXPOSE 8087

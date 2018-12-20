@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    restart: always
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "5000:5000"
+    # container_name: jenkins-server
+    networks:
+      - jenkins
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker:ro
+
+  postgres:
+    image: postgres:10.6
+    restart: always
+    # container_name: postgres-server
+    networks:
+      - jenkins
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonarpasswd
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  sonarqube:
+    image: sonarqube:lts
+    restart: always
+    # container_name: sonarqube-server
+    ports:
+      - "9000:9000"
+      - "9092:9092"
+    networks:
+      - jenkins
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+    environment:
+      SONARQUBE_JDBC_USERNAME: sonar
+      SONARQUBE_JDBC_PASSWORD: sonarpasswd
+      SONARQUBE_JDBC_URL: "jdbc:postgresql://postgres:5432/sonar"
+    depends_on: 
+      - postgres
+
+networks:
+  jenkins:
+    driver: bridge
+
+volumes:
+  jenkins-data:
+    driver: local
+  sonarqube-data:
+    driver: local
+  postgres-data:
+    driver: local
